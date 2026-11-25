@@ -1,5 +1,5 @@
 import { mat4 } from "wgpu-matrix";
-import { approach, clamp } from "../engine/math";
+import { approach, clamp, lerpN } from "../engine/math";
 import { isGun } from "../gameplay/items";
 
 export var GLOVE2 = [1, 1, 1];
@@ -60,17 +60,63 @@ export class Viewmodel {
     const hand = this.hand;
     mat4.translate(cam, [hx, hy, hz], hand);
     mat4.rotateX(hand, recoil * 0.22, hand);
-    if (kind === "blade" || kind === "katana") {
+    if (kind === "blade") {
       const slash = p.slashAge < 0.25 ? p.slashAge / 0.25 : -1;
       if (slash >= 0) {
         const k = Math.sin(slash * Math.PI);
-        mat4.translate(hand, [-k * 0.28, k * 0.06, -k * 0.18], hand);
-        mat4.rotateY(hand, 0.9 - slash * 1.9, hand);
-        mat4.rotateZ(hand, -k * 0.95, hand);
+        mat4.translate(hand, [-k * 0.25, k * 0.05, -k * 0.15], hand);
+        mat4.rotateY(hand, 0.9 - slash * 1.8, hand);
+        mat4.rotateZ(hand, -k * 0.9, hand);
       } else {
         mat4.rotateY(hand, 0.25, hand);
         mat4.rotateX(hand, 0.55, hand);
       }
+    } else if (kind === "katana") {
+      // Idle: held in right hand, upright across the POV pointing toward the top-left corner
+      const idlePos = [0.05, -0.02, -0.02];
+      const idleRot = [0.95, 0.3, 0.4]; // [rx, ry, rz]
+      // Top-right wind-up apex
+      const topPos = [0.12, 0.42, -0.02];
+      const topRot = [1.05, -0.22, -0.35];
+      // Bottom-right cut finish
+      const botPos = [0.08, -0.14, -0.06];
+      const botRot = [-0.78, -0.12, -0.16];
+
+      const slash = p.slashAge < 0.25 ? p.slashAge / 0.25 : -1;
+      let ox = idlePos[0], oy = idlePos[1], oz = idlePos[2];
+      let rx = idleRot[0], ry = idleRot[1], rz = idleRot[2];
+      if (slash >= 0) {
+        const smooth = (u: number) => u * u * (3 - 2 * u);
+        if (slash < 0.2) {
+          const u = smooth(slash / 0.2);
+          ox = lerpN(idlePos[0], topPos[0], u);
+          oy = lerpN(idlePos[1], topPos[1], u);
+          oz = lerpN(idlePos[2], topPos[2], u);
+          rx = lerpN(idleRot[0], topRot[0], u);
+          ry = lerpN(idleRot[1], topRot[1], u);
+          rz = lerpN(idleRot[2], topRot[2], u);
+        } else if (slash < 0.65) {
+          const u = smooth((slash - 0.2) / 0.45);
+          ox = lerpN(topPos[0], botPos[0], u);
+          oy = lerpN(topPos[1], botPos[1], u);
+          oz = lerpN(topPos[2], botPos[2], u) - Math.sin(u * Math.PI) * 0.14;
+          rx = lerpN(topRot[0], botRot[0], u);
+          ry = lerpN(topRot[1], botRot[1], u);
+          rz = lerpN(topRot[2], botRot[2], u);
+        } else {
+          const u = smooth((slash - 0.65) / 0.35);
+          ox = lerpN(botPos[0], idlePos[0], u);
+          oy = lerpN(botPos[1], idlePos[1], u);
+          oz = lerpN(botPos[2], idlePos[2], u);
+          rx = lerpN(botRot[0], idleRot[0], u);
+          ry = lerpN(botRot[1], idleRot[1], u);
+          rz = lerpN(botRot[2], idleRot[2], u);
+        }
+      }
+      mat4.translate(hand, [ox, oy, oz], hand);
+      mat4.rotateZ(hand, rz, hand);
+      mat4.rotateY(hand, ry, hand);
+      mat4.rotateX(hand, rx, hand);
     }
     this.drawItem(renderer, meshes, kind, hand);
     this.drawFistAt(renderer, meshes, hand);
