@@ -1,4 +1,4 @@
-import { clamp, copy, dirFromYawPitch, distSq, distXZ, dot, len, normalize, v3 } from "../engine/math";
+import { clamp, copy, dirFromYawPitch, distSq, distXZ, dot, len, normalize, v3, yawOf } from "../engine/math";
 import { Rng } from "../engine/rng";
 import type { LevelDef } from "../levels";
 import {
@@ -174,11 +174,11 @@ export class World {
         this.playerVolley(held.kind);
         return true;
       }
-      if (held.kind === "blade") {
+      if (held.kind === "blade" || held.kind === "katana") {
         if (p.fireCooldown > 0)
           return false;
-        p.fireCooldown = WEAPONS.blade.cooldown;
-        this.slash();
+        p.fireCooldown = WEAPONS[held.kind].cooldown;
+        this.slash(held.kind === "katana");
         return true;
       }
       this.throwHeld(1);
@@ -250,18 +250,21 @@ export class World {
       this.stun(target, 0.9, fwd, 2.5);
     }
   }
-  slash() {
+  slash(deflect = false) {
     const p = this.player;
     p.slashAge = 0;
     const eye = this.playerEye(v3());
     const fwd = this.forward(v3());
+    const enemyRange = deflect ? 2.4 : SLASH_RANGE;
+    const bulletRange = deflect ? 2.6 : 2;
+    const bulletDot = deflect ? 0.2 : 0.25;
     let hit = false;
     for (const e of this.enemies) {
       if (!e.alive || e.spawnT < 1)
         continue;
       const to = [e.pos[0] - eye[0], e.pos[1] + 1.1 - eye[1], e.pos[2] - eye[2]];
       const d = len(to);
-      if (d > SLASH_RANGE)
+      if (d > enemyRange)
         continue;
       normalize(to, to);
       if (dot(to, fwd) < 0.45)
@@ -276,13 +279,25 @@ export class World {
         continue;
       const to = [b.pos[0] - eye[0], b.pos[1] - eye[1], b.pos[2] - eye[2]];
       const d = len(to);
-      if (d > 2)
+      if (d > bulletRange)
         continue;
       normalize(to, to);
-      if (dot(to, fwd) < 0.25)
+      if (dot(to, fwd) < bulletDot)
         continue;
-      b.alive = false;
-      this.events.push({ type: "slice", pos: [b.pos[0], b.pos[1], b.pos[2]], dir: [b.vel[0], b.vel[1], b.vel[2]] });
+      if (deflect) {
+        b.ownerId = 0;
+        b.shotId = this.newShotId();
+        b.age = 0;
+        b.spawnPos = [b.pos[0], b.pos[1], b.pos[2]];
+        b.prevPos = [b.pos[0], b.pos[1], b.pos[2]];
+        b.vel[0] = fwd[0] * BULLET_SPEED;
+        b.vel[1] = fwd[1] * BULLET_SPEED;
+        b.vel[2] = fwd[2] * BULLET_SPEED;
+        this.events.push({ type: "slice", pos: [b.pos[0], b.pos[1], b.pos[2]], dir: [fwd[0], fwd[1], fwd[2]] });
+      } else {
+        b.alive = false;
+        this.events.push({ type: "slice", pos: [b.pos[0], b.pos[1], b.pos[2]], dir: [b.vel[0], b.vel[1], b.vel[2]] });
+      }
       hit = true;
     }
     this.events.push({ type: "slash", hit });
@@ -324,11 +339,20 @@ export class World {
     let start = [eye[0] + fwd[0] * 0.45 + right[0] * 0.12, eye[1] + fwd[1] * 0.45 - 0.08, eye[2] + fwd[2] * 0.45 + right[2] * 0.12];
     if (!this.static.lineClear(eye, start))
       start = [eye[0], eye[1] - 0.05, eye[2]];
-    const s = THROW_SPEED * strength;
-    const vel = [fwd[0] * s + p.vel[0], fwd[1] * s + 1.2 * strength + p.vel[1] * 0.5, fwd[2] * s + p.vel[2]];
+    const isSpear = item.kind === "katana" && strength > 0.5;
+    const s = (isSpear ? THROW_SPEED * 1.45 : THROW_SPEED) * strength;
+    const vel = isSpear
+      ? [fwd[0] * s + p.vel[0] * 0.5, fwd[1] * s + 0.35 + p.vel[1] * 0.3, fwd[2] * s + p.vel[2] * 0.5]
+      : [fwd[0] * s + p.vel[0], fwd[1] * s + 1.2 * strength + p.vel[1] * 0.5, fwd[2] * s + p.vel[2]];
     const prop = this.addProp(item, start, vel, strength > 0.5);
-    prop.rot = [0, p.yaw, 0];
-    prop.angVel = [this.rng.sym(12) - 8 * strength, this.rng.sym(4), this.rng.sym(6)];
+    if (isSpear) {
+      prop.rot = [p.pitch, p.yaw, 0];
+      prop.prevRot = [p.pitch, p.yaw, 0];
+      prop.angVel = [0, 0, 0];
+    } else {
+      prop.rot = [0, p.yaw, 0];
+      prop.angVel = [this.rng.sym(12) - 8 * strength, this.rng.sym(4), this.rng.sym(6)];
+    }
     this.events.push({ type: "throw" });
   }
   pickUp(prop) {
@@ -638,16 +662,26 @@ export class World {
       if (!pr.alive || pr.sleeping)
         continue;
       const prev = [pr.pos[0], pr.pos[1], pr.pos[2]];
-      pr.vel[1] -= GRAVITY2 * dt;
+      const isSpearFlight = pr.thrown && pr.item.kind === "katana";
+      pr.vel[1] -= (isSpearFlight ? GRAVITY2 * 0.25 : GRAVITY2) * dt;
       const drag = 1 - 0.05 * dt;
       pr.vel[0] *= drag;
       pr.vel[2] *= drag;
       pr.pos[0] += pr.vel[0] * dt;
       pr.pos[1] += pr.vel[1] * dt;
       pr.pos[2] += pr.vel[2] * dt;
-      pr.rot[0] += pr.angVel[0] * dt;
-      pr.rot[1] += pr.angVel[1] * dt;
-      pr.rot[2] += pr.angVel[2] * dt;
+      if (isSpearFlight) {
+        const horiz = Math.hypot(pr.vel[0], pr.vel[2]);
+        if (horiz > 0.1 || Math.abs(pr.vel[1]) > 0.1) {
+          pr.rot[0] = Math.atan2(pr.vel[1], Math.max(0.01, horiz));
+          pr.rot[1] = yawOf(pr.vel[0], pr.vel[2]);
+          pr.rot[2] = 0;
+        }
+      } else {
+        pr.rot[0] += pr.angVel[0] * dt;
+        pr.rot[1] += pr.angVel[1] * dt;
+        pr.rot[2] += pr.angVel[2] * dt;
+      }
       if (pr.thrown) {
         const hitR = ITEM_RADIUS[pr.item.kind];
         for (const e of this.enemies) {
@@ -660,8 +694,9 @@ export class World {
             continue;
           const dir = normalize(v3(), pr.vel);
           const heavy = pr.item.kind === "brick" || isWeapon(pr.item.kind);
-          if (th >= 0) {
-            this.killEnemy(e, dir, head, false);
+          if (th >= 0 || pr.item.kind === "katana") {
+            const hitPoint = th >= 0 ? head : [e.pos[0], e.pos[1] + 1.1, e.pos[2]];
+            this.killEnemy(e, dir, hitPoint, false);
           } else {
             this.disarm(e, dir);
             this.stun(e, heavy ? 1.6 : 1.3, dir, 3);

@@ -60,13 +60,13 @@ export class Viewmodel {
     const hand = this.hand;
     mat4.translate(cam, [hx, hy, hz], hand);
     mat4.rotateX(hand, recoil * 0.22, hand);
-    if (kind === "blade") {
+    if (kind === "blade" || kind === "katana") {
       const slash = p.slashAge < 0.25 ? p.slashAge / 0.25 : -1;
       if (slash >= 0) {
         const k = Math.sin(slash * Math.PI);
-        mat4.translate(hand, [-k * 0.25, k * 0.05, -k * 0.15], hand);
-        mat4.rotateY(hand, 0.9 - slash * 1.8, hand);
-        mat4.rotateZ(hand, -k * 0.9, hand);
+        mat4.translate(hand, [-k * 0.28, k * 0.06, -k * 0.18], hand);
+        mat4.rotateY(hand, 0.9 - slash * 1.9, hand);
+        mat4.rotateZ(hand, -k * 0.95, hand);
       } else {
         mat4.rotateY(hand, 0.25, hand);
         mat4.rotateX(hand, 0.55, hand);
@@ -94,6 +94,9 @@ export class Viewmodel {
         break;
       case "blade":
         mat4.translate(hand, [0, 0.02, -0.1], m2);
+        break;
+      case "katana":
+        mat4.translate(hand, [0, 0.02, -0.14], m2);
         break;
       default:
         mat4.translate(hand, [0, 0.07, -0.04], m2);

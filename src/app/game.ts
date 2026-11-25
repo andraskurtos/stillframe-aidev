@@ -28,10 +28,11 @@ var BASE_SENSITIVITY = 22e-4;
 var ENEMY_TINT = {
   walker: [0.8, 0.32, 1],
   rusher: [1, 0.26, 0.48],
-  marksman: [0.42, 0.48, 1]
+  marksman: [0.42, 0.48, 1],
+  katana: [1, 0.55, 0.18]
 };
-var ENEMY_EMISSIVE = { walker: 0.9, rusher: 1.1, marksman: 1 };
-var SHOT_SFX = { pistol: "pistol", scatter: "scatter", carbine: "carbine", blade: "whoosh" };
+var ENEMY_EMISSIVE = { walker: 0.9, rusher: 1.1, marksman: 1, katana: 1.15 };
+var SHOT_SFX = { pistol: "pistol", scatter: "scatter", carbine: "carbine", blade: "whoosh", katana: "whoosh" };
 export class Game {
   gfx;
   renderer;

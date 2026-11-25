@@ -17,6 +17,7 @@ export var REST_ROT = {
   scatter: [0, Math.PI / 2],
   carbine: [0, Math.PI / 2],
   blade: [0, Math.PI / 2],
+  katana: [0, Math.PI / 2],
   bottle: [Math.PI / 2, 0],
   brick: [0, 0],
   mug: [0, 0]

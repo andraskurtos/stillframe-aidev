@@ -110,6 +110,15 @@ export function buildMeshLibrary(device) {
       b.addBox([0, 0, -5e-3], [0.11, 0.02, 0.03], OFFWHITE);
       b.addBox([0, 0, -0.38], [0.012, 0.045, 0.72], WHITE2, 0.2);
     }, "blade"),
+    katana: part((b) => {
+      // Wrapped dark tsuka (handle)
+      b.addBox([0, 0, 0.14], [0.03, 0.038, 0.28], DARK);
+      // Circular/octagonal amber-gold tsuba (guard)
+      b.addBox([0, 0, -0.01], [0.095, 0.095, 0.018], srgbHex(14786860), 0.15);
+      // Long slender blade along -Z with subtle spine and bright edge
+      b.addBox([0, 0.008, -0.46], [0.01, 0.032, 0.88], WHITE2, 0.35);
+      b.addBox([0, 0.016, -0.94], [0.008, 0.02, 0.1], WHITE2, 0.5);
+    }, "katana"),
     bottle: part((b) => {
       b.addBox([0, -0.02, 0], [0.075, 0.18, 0.075], WHITE2);
       b.addTaperedBox(0, 0, 0.07, 0.12, 0.075, 0.075, 0.03, 0.03, WHITE2);

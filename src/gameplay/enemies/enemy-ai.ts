@@ -111,7 +111,8 @@ export function updateEnemy(world: World, e: any, dt: number) {
           handleShooting(world, e, dt, false);
       }
     } else if (!fetching) {
-      const meleeSpeed = e.kind === "rusher" ? params.speed : params.speed * 1.3;
+      const meleeSpeed = e.kind === "rusher" || e.kind === "katana" ? params.speed : params.speed * 1.3;
+      const meleeRange = e.weapon?.kind === "katana" ? 2.1 : MELEE_RANGE;
       desiredYaw = yawToPlayer;
       if (e.meleeT > 0) {
         e.meleeT += dt / MELEE_TIME;
@@ -125,8 +126,8 @@ export function updateEnemy(world: World, e: any, dt: number) {
       } else {
         moveTarget = player.pos;
         speed = meleeSpeed;
-        stopDist = 0.9;
-        if (distP < MELEE_RANGE && e.meleeCooldown <= 0 && Math.abs(angleDiff(yawToPlayer, e.yaw)) < 0.7 && Math.abs(playerEye[1] - eye[1]) < 1.2) {
+        stopDist = e.weapon?.kind === "katana" ? 1.25 : 0.9;
+        if (distP < meleeRange && e.meleeCooldown <= 0 && Math.abs(angleDiff(yawToPlayer, e.yaw)) < 0.7 && Math.abs(playerEye[1] - eye[1]) < 1.2) {
           e.meleeT = 1e-3;
           world.events.push({ type: "melee", pos: [eye[0], eye[1], eye[2]] });
         }
@@ -295,7 +296,8 @@ function meleeStrike(world, e) {
   const d = Math.hypot(dx, dz);
   const facing = Math.abs(angleDiff(yawOf(dx, dz), e.yaw)) < 0.9;
   const vertical = Math.abs(p.pos[1] - e.pos[1]) < 1.2;
-  if (d < MELEE_RANGE + 0.15 && facing && vertical) {
+  const strikeRange = (e.weapon?.kind === "katana" ? 2.1 : MELEE_RANGE) + 0.15;
+  if (d < strikeRange && facing && vertical) {
     world.killPlayer([dx / Math.max(d, 1e-3), 0, dz / Math.max(d, 1e-3)]);
   }
 }

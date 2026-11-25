@@ -11,6 +11,7 @@ var lobby = level({
   props: [
     { kind: "mug", pos: [1.5, 1.3, -3.6] },
     { kind: "brick", pos: [-3, 0.1, 6] },
+    { kind: "katana", pos: [3, 0.1, 6] },
     { kind: "bottle", pos: [6.8, 0.8, 7] }
   ],
   waves: [
@@ -19,7 +20,7 @@ var lobby = level({
       when: { type: "remaining", count: 0 },
       delay: 0.6,
       spawns: [
-        { kind: "rusher", pos: [-3, -11] },
+        { kind: "katana", pos: [-3, -11] },
         { kind: "rusher", pos: [3, -11] },
         { kind: "walker", pos: [0, -11] }
       ]

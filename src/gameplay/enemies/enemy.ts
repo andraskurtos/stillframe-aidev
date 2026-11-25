@@ -4,7 +4,8 @@ import { newItem } from "../items";
 export var ENEMY_PARAMS = {
   walker: { speed: 2.3, turnRate: 5, reaction: 0.5, aimError: 3.2, keepDist: 6, cooldownMul: 2.4, hp: 2, defaultWeapon: "pistol" },
   rusher: { speed: 5.2, turnRate: 9, reaction: 0.25, aimError: 0, keepDist: 0, cooldownMul: 1, hp: 2, defaultWeapon: null },
-  marksman: { speed: 1.1, turnRate: 3.2, reaction: 0.7, aimError: 1, keepDist: 40, cooldownMul: 1, hp: 2, defaultWeapon: "carbine" }
+  marksman: { speed: 1.1, turnRate: 3.2, reaction: 0.7, aimError: 1, keepDist: 40, cooldownMul: 1, hp: 2, defaultWeapon: "carbine" },
+  katana: { speed: 4.6, turnRate: 8, reaction: 0.28, aimError: 0, keepDist: 0, cooldownMul: 1, hp: 2, defaultWeapon: "katana" }
 };
 export var ENEMY_RADIUS = 0.3;
 export var ENEMY_HEIGHT = 1.8;

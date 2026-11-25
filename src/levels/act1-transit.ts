@@ -10,13 +10,14 @@ var platform = level({
   player: { pos: [0, 0, 4], yaw: 0 },
   props: [
     { kind: "bottle", pos: [1.5, 0.6, 2] },
+    { kind: "katana", pos: [0.8, 0.6, 2] },
     { kind: "brick", pos: [-1.5, 0.1, 1] },
     { kind: "mug", pos: [-4.5, 0.6, -4.6] }
   ],
   waves: [
     { when: { type: "start" }, spawns: [{ kind: "walker", pos: [0, -9], weapon: null }] },
     { when: { type: "remaining", count: 0 }, delay: 0.4, spawns: [{ kind: "walker", pos: [-4, -10] }] },
-    { when: { type: "remaining", count: 0 }, delay: 0.4, spawns: [{ kind: "walker", pos: [4, -10] }, { kind: "walker", pos: [-4, -10] }] }
+    { when: { type: "remaining", count: 0 }, delay: 0.4, spawns: [{ kind: "katana", pos: [4, -10] }, { kind: "walker", pos: [-4, -10] }] }
   ]
 }, (b) => {
   b.room(-6, -12, 6, 6, 5, { ceiling: true });
@@ -94,7 +95,7 @@ var turnstiles = level({
     { kind: "brick", pos: [3, 0.1, 2] }
   ],
   waves: [
-    { when: { type: "start" }, spawns: [{ kind: "rusher", pos: [-6, -10] }, { kind: "rusher", pos: [6, -10] }] },
+    { when: { type: "start" }, spawns: [{ kind: "katana", pos: [-6, -10] }, { kind: "rusher", pos: [6, -10] }] },
     {
       when: { type: "remaining", count: 0 },
       delay: 0.5,
@@ -104,7 +105,7 @@ var turnstiles = level({
         { kind: "rusher", pos: [0, -13] }
       ]
     },
-    { when: { type: "remaining", count: 1 }, delay: 1, spawns: [{ kind: "rusher", pos: [-8, 6.5] }, { kind: "rusher", pos: [8, 6.5] }] }
+    { when: { type: "remaining", count: 1 }, delay: 1, spawns: [{ kind: "katana", pos: [-8, 6.5] }, { kind: "rusher", pos: [8, 6.5] }] }
   ]
 }, (b) => {
   b.room(-10, -14, 10, 8, 5, { ceiling: true });

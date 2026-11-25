@@ -241,6 +241,7 @@ var spire = level({
   player: { pos: [0, 0, 13], yaw: 0 },
   props: [
     { kind: "pistol", pos: [2, 0.1, 11] },
+    { kind: "katana", pos: [4, 0.1, 11] },
     { kind: "scatter", pos: [-12, 0.1, 6] },
     { kind: "blade", pos: [12, 0.1, 6] },
     { kind: "brick", pos: [-2, 0.1, 11] },
@@ -254,7 +255,7 @@ var spire = level({
       spawns: [
         { kind: "walker", pos: [-8, -8] },
         { kind: "walker", pos: [8, -8] },
-        { kind: "rusher", pos: [0, -13] }
+        { kind: "katana", pos: [0, -13] }
       ]
     },
     {
