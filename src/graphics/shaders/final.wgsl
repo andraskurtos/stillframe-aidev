@@ -53,7 +53,8 @@ fn fsFinal(fin : FullOut) -> @location(0) vec4f {
 
   let wave = sin(post.camera.z * post.danger.y);
   let threatPulse = smoothstep(0.0, 0.3, abs(wave));
-  mapped *= 1.0 - post.danger.x * threatPulse;
+  let threatEdge = smoothstep(0.1, 0.65, radial * 1.6) * post.danger.x * (0.4 + 0.6 * threatPulse);
+  mapped = mix(mapped, vec3f(0.85, 0.08, 0.12), threatEdge * 0.45);
 
   let g = grainHash(fin.clipPos.xy + vec2f(post.camera.z * 61.0, post.camera.z * 17.0)) - 0.5;
   mapped += vec3f(g * post.grade.w);

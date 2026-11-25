@@ -297,6 +297,20 @@ export class Game {
       t.lock = t.lock === "realtime" ? "none" : "realtime";
     if (input.wasPressed("debugOverlay"))
       this.debugOverlayForced = !this.debugOverlayForced;
+    if (input.wasPressed("pause")) {
+      if (this.state === "playing" || this.state === "intro") {
+        if (typeof document !== "undefined" && document.pointerLockElement)
+          document.exitPointerLock();
+        this.pause();
+        t.timeScale = 0;
+        return;
+      }
+      if (this.state === "paused") {
+        this.resume();
+        t.timeScale = 0;
+        return;
+      }
+    }
     const look = { sensitivity: BASE_SENSITIVITY * this.save.settings.sensitivity, invertY: this.save.settings.invertY };
     const locked = input.pointerLocked;
     this.ui.showLockHint((this.state === "playing" || this.state === "intro") && !locked);
@@ -326,7 +340,7 @@ export class Game {
         if (acted)
           this.driver.actionKick();
         const busy = this.world.player.burstLeft > 0;
-        t.timeScale = this.driver.update(dt, WALK_SPEED, this.player.planarSpeed, this.player.lookSpeed, !this.player.grounded, busy);
+        t.timeScale = this.driver.update(dt, this.player.planarSpeed, WALK_SPEED, this.player.lookSpeed, !this.player.grounded, busy);
         this.runRealTime += dt;
         break;
       }
@@ -568,7 +582,7 @@ export class Game {
     }
     p.flash = this.flash;
     const incoming = this.incomingThreat(world);
-    this.threat = approach(this.threat, incoming, incoming > this.threat ? 0.05 : 2.5, realDt);
+    this.threat = approach(this.threat, incoming, incoming > this.threat ? 0.05 : 0.35, realDt);
     p.threat = reduce ? 0 : this.threat;
   }
   updateHud(world, ts) {

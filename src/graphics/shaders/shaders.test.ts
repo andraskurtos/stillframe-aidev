@@ -21,3 +21,7 @@ for (const [name, entries] of Object.entries(cases)) {
     expect(src).not.toContain("`");
   });
 }
+
+test("final shader does not multiply whole viewport to black on threat", () => {
+  expect(SHADERS.final).not.toContain("mapped *= 1.0 - post.danger.x");
+});
