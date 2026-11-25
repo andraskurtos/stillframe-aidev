@@ -1,0 +1,47 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Dev (Vite + Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "preLaunchTask": "dev-server",
+      "postDebugTask": "${input:stopDev}",
+      "runtimeArgs": [
+        "--enable-unsafe-webgpu",
+        "--enable-features=Vulkan"
+      ]
+    },
+    {
+      "name": "Production (build + preview + Chrome)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:4173",
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "preLaunchTask": "preview-server",
+      "postDebugTask": "${input:stopPreview}",
+      "runtimeArgs": [
+        "--enable-unsafe-webgpu",
+        "--enable-features=Vulkan"
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "stopDev",
+      "type": "command",
+      "command": "workbench.action.tasks.terminate",
+      "args": "dev-server"
+    },
+    {
+      "id": "stopPreview",
+      "type": "command",
+      "command": "workbench.action.tasks.terminate",
+      "args": "preview-server"
+    }
+  ]
+}
